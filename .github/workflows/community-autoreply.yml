@@ -1,0 +1,30 @@
+name: community auto-reply
+on:
+  discussion:
+    types: [created]
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    permissions:
+      discussions: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "👋 Thanks for posting in Sentinel Discussions! (automated welcome — a human reads everything here)",
+              "",
+              "**Start here:**",
+              "- Interest / signup list: https://muse.ai/s/sentinel-landing-page-xej61jxj8xmxlbs",
+              "- Animated 8-tile demo: https://muse.ai/s/sentinel-mockup-demo-xexq61jxixw9wxf4",
+              "",
+              "**Build docs:** the Dashboard tier runs today on BYO CYD-class ESP32 hardware (CYD = “Cheap Yellow Device”, ~$20 ESP32-2432S028-class boards). Build and flashing docs are linked from the signup page above.",
+              "",
+              "If this doesn't answer your question, hang tight — the maintainer (K5EDG) will follow up."
+            ].join("\n");
+            await github.graphql(
+              `mutation($id: ID!, $body: String!) {
+                 addDiscussionComment(input: {discussionId: $id, body: $body}) { comment { id } }
+               }`,
+              { id: context.payload.discussion.node_id, body }
+            );
